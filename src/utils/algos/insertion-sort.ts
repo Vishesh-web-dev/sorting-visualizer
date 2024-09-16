@@ -2,10 +2,11 @@ import { IRandomArray } from "../../types";
 import compare from "./compare";
 
 export default function insertionSort(
-  data: IRandomArray[],
+  array: IRandomArray[],
   sortOrder: string
 ): IRandomArray[][] {
-  let sortingStepsData: IRandomArray[][] = [];
+  const data: IRandomArray[] = JSON.parse(JSON.stringify(array));
+  const sortingStepsData: IRandomArray[][] = [JSON.parse(JSON.stringify(data))];
   let arrayLength = data.length;
   let currentIndex = 1; // Start from the second element
 

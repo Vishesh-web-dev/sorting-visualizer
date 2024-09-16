@@ -2,10 +2,12 @@ import { IRandomArray } from "../../types";
 import compare from "./compare";
 
 export default function selectionSort(
-  data: IRandomArray[],
+  array: IRandomArray[],
   sortOrder: string
 ): IRandomArray[][] {
-  let sortingStepsData: IRandomArray[][] = [];
+  const data: IRandomArray[] = JSON.parse(JSON.stringify(array));
+  const sortingStepsData: IRandomArray[][] = [JSON.parse(JSON.stringify(data))];
+
   for (let i = 0; i < data.length - 1; i++) {
     for (let j = i + 1; j < data.length; j++) {
       data[i].isPositionChanged = true;

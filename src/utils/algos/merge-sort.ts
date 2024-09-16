@@ -2,11 +2,11 @@ import { IRandomArray } from "../../types";
 import compare from "./compare";
 
 export default function mergeSort(
-  data: IRandomArray[],
+  array: IRandomArray[],
   sortOrder: string
 ): IRandomArray[][] {
-  let sortingStepsData: IRandomArray[][] = [];
-
+  const data: IRandomArray[] = JSON.parse(JSON.stringify(array));
+  const sortingStepsData: IRandomArray[][] = [JSON.parse(JSON.stringify(data))];
   function merge(
     left: IRandomArray[],
     right: IRandomArray[],
