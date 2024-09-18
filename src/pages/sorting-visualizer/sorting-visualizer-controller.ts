@@ -179,7 +179,7 @@ function useSortingVisualizer() {
     setChartData(sortingStepsData[step]);
     if (step === sortingStepsData.length - 1) {
       onVisualizationComplete();
-    } else if (step === 0) {
+    } else if (step !== 0) {
       onVisualizationStop();
     }
   };
