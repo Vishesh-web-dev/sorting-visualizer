@@ -25,21 +25,26 @@ import {
 
 function SortingVisualizer() {
   const {
+    currentStep,
+    totalStepsCount,
     chartData,
     showAnimation,
     chartOrientation,
-    isVisualizationRunning,
     sortOrder,
     arraySize,
     sortingSpeed,
+    isVisualizationStarted,
+    isVisualizationRunning,
+    isVisualizationCompleted,
     onArraySizeChange,
     onSortingSpeedChange,
     onSortingAlgorithmChange,
     onGenerateArrayBtnClick,
-    onStartVisualization,
-    onStopVisualization,
+    onVisualizationStartOrResume,
+    onVisualizationStop,
     onChartOrientationChange,
     onSortOrderChange,
+    onNavigateToStep,
   } = useSortingVisualizer();
   return (
     <>
@@ -53,32 +58,69 @@ function SortingVisualizer() {
           chartOrientation={chartOrientation}
         />
       </div>
+      {isVisualizationStarted || isVisualizationCompleted ? (
+        <div
+          className="step-counter"
+          style={{ margin: "20px 0", textAlign: "center" }}
+        >
+          <h3>
+            Step {currentStep + 1} of {totalStepsCount}
+          </h3>
+        </div>
+      ) : (
+        <div
+          className="step-counter"
+          style={{ margin: "20px 0", textAlign: "center" }}
+        >
+          <h3></h3>
+        </div>
+      )}
+
       <div className="">
         <Tabs
           defaultActiveKey={SORTING_ALGORITHMS[0]}
           style={{ height: 220 }}
           type="card"
+          //@ts-ignore
           onChange={onSortingAlgorithmChange}
           tabPosition="left"
         >
           {SORTING_ALGORITHMS.map((algo) => (
-            <TabPane tab={algo} key={algo} disabled={isVisualizationRunning}>
+            <TabPane tab={algo} key={algo}>
               <div>
                 <ButtonGroup>
-                  <Button disabled={isVisualizationRunning}>
+                  <Button
+                    onClick={() => onNavigateToStep(0)}
+                    disabled={isVisualizationRunning || currentStep === 0}
+                  >
                     <FastBackwardFilled />
-                    Go back
+                    Go to first
                   </Button>
-                  <Button disabled={isVisualizationRunning}>
+                  <Button
+                    onClick={() => onNavigateToStep(currentStep - 1)}
+                    disabled={isVisualizationRunning || currentStep === 0}
+                  >
                     <StepBackwardFilled />
                     Go back
                   </Button>
-                  <Button disabled={isVisualizationRunning}>
+                  <Button
+                    onClick={() => onNavigateToStep(currentStep + 1)}
+                    disabled={
+                      isVisualizationRunning ||
+                      currentStep >= totalStepsCount - 1
+                    }
+                  >
                     Go forward
                     <StepForwardFilled />
                   </Button>
-                  <Button disabled={isVisualizationRunning}>
-                    Go forward
+                  <Button
+                    onClick={() => onNavigateToStep(totalStepsCount - 1)}
+                    disabled={
+                      isVisualizationRunning ||
+                      currentStep >= totalStepsCount - 1
+                    }
+                  >
+                    Go to Last
                     <FastForwardFilled />
                   </Button>
                 </ButtonGroup>
@@ -91,7 +133,7 @@ function SortingVisualizer() {
                   step={SIZE_SLIDER_STEP}
                   defaultValue={DEFAULT_ARRAY_SIZE}
                   onChange={onArraySizeChange}
-                  disabled={isVisualizationRunning}
+                  disabled={isVisualizationStarted}
                   value={arraySize}
                   // tipFormatter={}
                 />
@@ -122,13 +164,17 @@ function SortingVisualizer() {
               <div>
                 <ButtonGroup>
                   <Button
-                    onClick={onStartVisualization}
+                    onClick={onVisualizationStartOrResume}
                     disabled={isVisualizationRunning}
                   >
-                    Start Vizualization
+                    {isVisualizationStarted
+                      ? "Resume Visualization"
+                      : isVisualizationCompleted
+                      ? "Re Start Visualization"
+                      : "Start Visualization"}
                   </Button>
                   <Button
-                    onClick={onStopVisualization}
+                    onClick={onVisualizationStop}
                     disabled={!isVisualizationRunning}
                   >
                     Stop Vizualization
@@ -148,6 +194,7 @@ function SortingVisualizer() {
                   getPopupContainer={(trigger) =>
                     trigger?.parentElement as HTMLElement
                   }
+                  disabled={isVisualizationStarted}
                 >
                   {SORT_ORDER?.map((sortOrder) => (
                     <Select.Option key={sortOrder} value={sortOrder}>

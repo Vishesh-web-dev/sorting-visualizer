@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CHART_ORIENTATION,
   DEFAULT_ARRAY_SIZE,
@@ -6,7 +6,11 @@ import {
   SORTING_ALGORITHMS,
   SORT_ORDER,
 } from "../../utils/enums";
-import { IRandomArray } from "../../types";
+import {
+  IRandomArray,
+  IVisualizationStatus,
+  SortingAlgorithmKeys,
+} from "../../types";
 import {
   bubbleSort,
   insertionSort,
@@ -19,9 +23,8 @@ import { useNotification } from "../../hooks";
 function useSortingVisualizer() {
   const notify = useNotification();
   const timerIds = useRef<number[]>([]);
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<string>(
-    SORTING_ALGORITHMS[0]
-  );
+  const [selectedAlgorithm, setSelectedAlgorithm] =
+    useState<SortingAlgorithmKeys>(SORTING_ALGORITHMS[0]);
   const [arraySize, setArraySize] = useState<number>(DEFAULT_ARRAY_SIZE);
 
   const [sortingSpeed, setSortingSpeed] = useState<number>(
@@ -44,11 +47,16 @@ function useSortingVisualizer() {
 
   const [showAnimation, setShowAnimation] = useState<boolean>(true);
 
-  const [isVisualizationRunning, setIsVisualizationRunning] =
-    useState<boolean>(false);
+  const [visualizationStatus, setVisualizationStatus] =
+    useState<IVisualizationStatus>({
+      started: false,
+      running: false,
+      stopped: false,
+      completed: false,
+    });
 
-  const sortingAlgorithms: { [key: string]: () => IRandomArray[][] } = useMemo(
-    () => ({
+  const sortingAlgorithms = useCallback(
+    (chartData: IRandomArray[], sortOrder: string) => ({
       [SORTING_ALGORITHMS[0]]: () => bubbleSort(chartData, sortOrder),
       [SORTING_ALGORITHMS[1]]: () => selectionSort(chartData, sortOrder),
       [SORTING_ALGORITHMS[2]]: () => insertionSort(chartData, sortOrder),
@@ -63,15 +71,30 @@ function useSortingVisualizer() {
     timerIds.current = [];
   }, [timerIds]);
 
-  const onSortingAlgorithmChange = (selectedAlgorithm: string) => {
+  const resetToInitialState = (size: number = arraySize) => {
+    setChartData(randomArrayGenerator(size));
+    setSortingStepData([]);
+    setShowAnimation(true);
+    setVisualizationStatus({
+      started: false,
+      running: false,
+      stopped: false,
+      completed: false,
+    });
+    setStep(0);
+    clearTimers();
+  };
+
+  const onSortingAlgorithmChange = (
+    selectedAlgorithm: SortingAlgorithmKeys
+  ) => {
     setSelectedAlgorithm(selectedAlgorithm);
-    setChartData(randomArrayGenerator(arraySize));
+    resetToInitialState();
   };
 
   const onArraySizeChange = (value: number) => {
     setArraySize(value);
-    setChartData(randomArrayGenerator(value));
-    setShowAnimation(false);
+    resetToInitialState(value);
   };
 
   const onSortingSpeedChange = (value: number) => {
@@ -79,8 +102,7 @@ function useSortingVisualizer() {
   };
 
   const onGenerateArrayBtnClick = () => {
-    setChartData(randomArrayGenerator(arraySize));
-    setShowAnimation(true);
+    resetToInitialState();
   };
 
   const onChartOrientationChange = (orientation: string) => {
@@ -89,71 +111,125 @@ function useSortingVisualizer() {
   };
 
   const onSortOrderChange = (sortOrder: string) => {
+    if (visualizationStatus.completed) {
+      setChartData(
+        chartData.map((data) => ({
+          ...data,
+          isAtCorrectPosition: false,
+        }))
+      );
+    }
     setSortOrder(sortOrder);
-    setShowAnimation(false);
+    setSortingStepData([]);
+    setShowAnimation(true);
+    setVisualizationStatus({
+      started: false,
+      running: false,
+      stopped: false,
+      completed: false,
+    });
+    setStep(0);
+    clearTimers();
   };
-  const onStartVisualization = () => {
-    // if (checkSorted(chartData, sortOrder)) {
-    // } else {
-    // }
-    setChartData(
-      chartData.map((data) => {
-        data.isAtCorrectPosition = false;
-        return data;
-      })
-    );
-    setSortingStepData(sortingAlgorithms[selectedAlgorithm]?.() || []);
-    setIsVisualizationRunning(true);
+  const onVisualizationStartOrResume = () => {
+    if (!visualizationStatus.started || visualizationStatus.completed) {
+      const newChartData = chartData.map((data) => ({
+        ...data,
+        isAtCorrectPosition: false,
+      }));
+      setChartData(newChartData);
+      setStep(0);
+      setSortingStepData(
+        sortingAlgorithms(newChartData, sortOrder)[selectedAlgorithm]
+      );
+    }
+    setVisualizationStatus({
+      started: true,
+      running: true,
+      stopped: false,
+      completed: false,
+    });
     setShowAnimation(false);
   };
 
-  const onStopVisualization = () => {
+  const onVisualizationStop = () => {
     clearTimers();
-    setIsVisualizationRunning(false);
+    setVisualizationStatus({
+      started: true,
+      running: false,
+      stopped: true,
+      completed: false,
+    });
     setShowAnimation(true);
   };
 
   const onVisualizationComplete = () => {
+    notify("success", "Array Sorted Successfully", "yay");
+    setVisualizationStatus({
+      started: false,
+      running: false,
+      stopped: false,
+      completed: true,
+    });
     setShowAnimation(true);
-    setIsVisualizationRunning(false);
-    notify("success", "", "Array Sorted!!");
+  };
+
+  const onNavigateToStep = (step: number) => {
+    setStep(step);
+    setChartData(sortingStepsData[step]);
+    if (step === sortingStepsData.length - 1) {
+      onVisualizationComplete();
+    } else if (step === 0) {
+      onVisualizationStop();
+    }
   };
 
   useEffect(() => {
-    if (isVisualizationRunning) {
-      //logic update for curr step which is done yet if continue
-      for (let i = step; i < sortingStepsData.length; i++) {}
-      sortingStepsData.forEach((data, step) => {
+    if (visualizationStatus.running) {
+      let delay = 0;
+      for (
+        let currStep = step;
+        currStep < sortingStepsData.length;
+        currStep++
+      ) {
         const timerId = setTimeout(() => {
-          if (step === sortingStepsData.length - 1) {
+          if (currStep === sortingStepsData.length - 1) {
             onVisualizationComplete();
           }
-          setChartData([...data]);
-          setStep(step);
-        }, sortingSpeed * step);
+          setStep(currStep);
+          setChartData(sortingStepsData[currStep]);
+        }, sortingSpeed * delay);
+        delay++;
         timerIds.current.push(timerId);
-      });
+      }
     }
     return () => {
       clearTimers();
     };
-  }, [isVisualizationRunning]);
+  }, [visualizationStatus]);
+
   return {
+    currentStep: step,
+    totalStepsCount: sortingStepsData.length,
     chartData,
     showAnimation,
     chartOrientation,
-    isVisualizationRunning,
     sortOrder,
     arraySize,
     sortingSpeed,
+    isVisualizationStarted: visualizationStatus.started,
+    isVisualizationRunning: visualizationStatus.running,
+    isVisualizationStopped: visualizationStatus.stopped,
+    isVisualizationCompleted: visualizationStatus.completed,
     onArraySizeChange,
     onSortingSpeedChange,
     onSortingAlgorithmChange,
     onGenerateArrayBtnClick,
-    onStartVisualization,
-    onStopVisualization,
+    onVisualizationStartOrResume,
+    onVisualizationStop,
     onChartOrientationChange,
     onSortOrderChange,
+    onNavigateToStep,
   };
 }
 export default useSortingVisualizer;
