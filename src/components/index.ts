@@ -1,2 +1,3 @@
 import ColumnChart from "./column-chart";
-export {ColumnChart};
+import Spinner from "./spinner";
+export { ColumnChart, Spinner };

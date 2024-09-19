@@ -1,2 +1,1 @@
-import randomArrayGenerator from "./array-generator";
-export { randomArrayGenerator };
+export { default } from "./array-generator";

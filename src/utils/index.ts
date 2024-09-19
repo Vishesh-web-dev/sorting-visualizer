@@ -7,7 +7,7 @@ import {
   compare,
   checkSorted,
 } from "./algos";
-import { randomArrayGenerator } from "./array-generator";
+import randomArrayGenerator from "./array-generator";
 
 export {
   randomArrayGenerator,

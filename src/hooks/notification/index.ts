@@ -1,2 +1,1 @@
-import useNotification from "./notification";
-export default useNotification;
+export { default } from "./notification";

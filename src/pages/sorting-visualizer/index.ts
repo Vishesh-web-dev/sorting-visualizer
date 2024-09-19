@@ -1,2 +1,1 @@
-import SortingVisualizer from './sorting-visualizer';
-export default SortingVisualizer;
+export { default } from "./sorting-visualizer";

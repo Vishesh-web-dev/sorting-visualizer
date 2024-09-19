@@ -1,4 +1,13 @@
 import { Slider, Tabs, Button, Select } from "antd";
+import TabPane from "antd/es/tabs/TabPane";
+import ButtonGroup from "antd/es/button/button-group";
+import {
+  FastBackwardFilled,
+  FastForwardFilled,
+  StepBackwardFilled,
+  StepForwardFilled,
+} from "@ant-design/icons";
+
 import useSortingVisualizer from "./sorting-visualizer-controller";
 import {
   SIZE_SLIDER_STEP,
@@ -13,15 +22,7 @@ import {
   CHART_ORIENTATION,
   SORT_ORDER,
 } from "../../utils/enums";
-import TabPane from "antd/es/tabs/TabPane";
 import { ColumnChart } from "../../components";
-import ButtonGroup from "antd/es/button/button-group";
-import {
-  FastBackwardFilled,
-  FastForwardFilled,
-  StepBackwardFilled,
-  StepForwardFilled,
-} from "@ant-design/icons";
 
 function SortingVisualizer() {
   const {

@@ -1,5 +1,5 @@
-import { IRandomArray } from "../../types";
 import Highcharts from "highcharts";
+import { IRandomArray } from "../../types";
 import {
   CORRECT_POSITION_COLOR,
   DEFAULT_COLUMN_COLOR,
@@ -48,11 +48,9 @@ const useColumnChartController: ColumnChartController = (
     plotOptions: {
       column: {
         borderRadius: "25%",
-        animation:
-          showAnimation &&
-          {
-            duration: 100,
-          },
+        animation: showAnimation && {
+          duration: 100,
+        },
         dataLabels: {
           enabled: false,
         },

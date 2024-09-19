@@ -1,16 +1,19 @@
-import { notification, NotificationArgsProps } from "antd";
 import { useCallback } from "react";
+import { notification, NotificationArgsProps } from "antd";
 type NotificationPlacement = NotificationArgsProps["placement"];
+type NotificationMessage = NotificationArgsProps["message"];
+type NotificationDescription = NotificationArgsProps["description"];
+type NotificationDuration = NotificationArgsProps["duration"];
 type NotificationType = "success" | "info" | "warning" | "error";
 
 const useNotification = () => {
   const openNotification = useCallback(
     (
       type: NotificationType,
-      message: string,
-      description: string,
+      message: NotificationMessage,
+      description: NotificationDescription,
       placement: NotificationPlacement = "top",
-      duration: number = 5
+      duration: NotificationDuration = 5
     ) => {
       notification[type]({
         message,

@@ -1,2 +1,1 @@
-import ColumnChart from "./column-chart";
-export default ColumnChart
+export { default } from "./column-chart";
